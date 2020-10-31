@@ -3,6 +3,7 @@ package cool.spongecaptain.registry.zk;
 import cool.spongecaptain.exception.RpcException;
 import cool.spongecaptain.registry.ServiceDiscovery;
 
+import java.net.InetSocketAddress;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -13,10 +14,13 @@ public class ZKServiceDiscovery  implements ServiceDiscovery {
      */
     private ConcurrentHashMap<String,String> cache = new ConcurrentHashMap<>();
     @Override
-    public String lookForService(String serviceName) {
+    public InetSocketAddress lookForService(String serviceName) {
         //缓存优先
         if (cache.contains(serviceName)) {
-            return cache.get(serviceName);
+            //这里负责将 IP:PORT 字符串进行解析
+            String s = cache.get(serviceName);
+            String[] split = s.split(":");
+            return  new InetSocketAddress(split[0],Integer.parseInt(split[1]));
         }else{
 
             //如果 serviceName 为 NAMESPACE，说明想要获取所有 NAMESPACE 下的所有子节点，其不注重返回值
@@ -28,11 +32,13 @@ public class ZKServiceDiscovery  implements ServiceDiscovery {
                     throw new RpcException("/rpc 没有找到任何服务 "+serviceName);
                 }
 
-                return "/rpc";
+                return null;
              //说明只是想获取某一个节点的数据
             }else{
                     String nodeData = CuratorUtil.getData(serviceName, this);
-                    return  nodeData;
+                    //这里负责将 IP:PORT 字符串进行解析
+                String[] split = nodeData.split(":");
+                return  new InetSocketAddress(split[0],Integer.parseInt(split[1]));
             }
         }
 

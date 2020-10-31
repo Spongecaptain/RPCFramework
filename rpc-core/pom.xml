@@ -24,6 +24,13 @@
             <version>${curator-version}</version>
         </dependency>
 
+        <dependency>
+            <groupId>com.esotericsoftware</groupId>
+            <artifactId>kryo</artifactId>
+            <version>${kryo-version}</version>
+        </dependency>
+
+
         <!--项目其他模块依赖-->
         <dependency>
             <groupId>cool.spongecaptain</groupId>

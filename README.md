@@ -43,7 +43,53 @@ Dubbo 中使用 ZooKeeper 服务中心如下图所示：
 
 使用 Docker 来启动一个 ZooKeeper 是一个很好的选择。
 
-## 2. 
+## 2. 基于 Netty 的消息传输
 
+Netty 已经非常大程度上减少我们在 Java 网络传输上的复杂度，但是要理解整个 RPC 消息传输以及响应的过程也不是一件简单的事情。
 
+### 2.1 项目模块说明
 
+- client 向代理层暴露一个发送 RpcRequest 消息，并得到 RPC 执行结果的接口；
+- server 面向服务端服务，主要功能是向注册中心进行服务注册以及提供 RPC 调用的监听；
+- handler 在服务端提供对 RprRequest 的处理能力；
+- protocol 规定了RpcRequest 以及 RpcResponse 类的字段结构；
+- serialize 提供了对 RpcRequest 以及 RpcResponse 的序列化功能；
+- transport 处于整个框架的底层，基于 Netty 实现了请求-响应中的客户端与服务端；
+
+### 2.2 Netty 消息传播模型
+
+Netty 客户端实现类为 cool.spongecaptain.transport.client.NettyClient，Netty 服务端实现类为 cool.spongecaptain.transport.server.NettyServer，它们的管道模型非常类似，都可以用下图表示：
+
+![RpcNettyPipeline](doc/images/RpcNettyPipeline.png)
+
+不过，客户端与服务端在每一个 ChannelHandler 的类型选择上有所不同。
+
+Netty 客户端：
+
+- in1/out1：IdleStateHandler 用于长时间未通信后的 TCP 关闭
+- in2：ByteDecoder 负责将 ByteBuf 转换为 RPCResponse 实例
+- in3：RpcResponseHandler 负责 RpcResponse 的处理，包括服务端对 request 中指定方法的调用
+- out1：MessageEncoder RPCRequest 转为 ByteBuf 后向前传播
+
+Netty 服务端：
+
+- in1/out1：用于长时间未通信后的 TCP 关闭
+- in2：Decoder 负责将 ByteBuf 的字节数据转换为 RpcRequest 实例
+- in3：RPCRequestHandler 负责处理 RpcRequest 对应的 RPC 方法，执行后产生对应的 RPCResponse 实例返回
+- out1：Encoder 负责将 RPCResponse 转换为 ByteBuf，然后再向前传播
+
+### 2.3 消息传播协议
+
+自定义的消息传播协议基于 TCP 协议，其默认的格式为：
+
+```
+Magic Number + versionNumber + serializaitonID + commandID + dataLength + data
+```
+
+长度依次为：
+
+```
+4 byyte、1 bytes + 1 bytes + 1 bytes + 4 bytes + depend on dataLength
+```
+
+> TODO commandID 需要么？这是存疑的？
