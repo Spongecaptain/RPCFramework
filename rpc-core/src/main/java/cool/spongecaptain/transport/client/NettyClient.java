@@ -47,7 +47,6 @@ public class NettyClient {
                                 //Client-in2：Decoder：负责将 ByteBuf 转换为 RPCResponse 实例
                                 ch.pipeline().addLast(new ByteDecoder(new KryoSerialization()));
                                 //Client-in3：负责 RpcResponse 的处理，包括服务端对 request 中指定方法的调用
-                                //TODO 这里先简单地在 ChannelInboundHandler 中在控制台打印出相关结果
                                 ch.pipeline().addLast(new RpcResponseHandler());
                                 //out1：Encoder RPCRequest 转为 ByteBuf 后向前传播
                                 ch.pipeline().addLast(new MessageEncoder(new KryoSerialization()));

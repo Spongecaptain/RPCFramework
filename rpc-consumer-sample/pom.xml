@@ -9,35 +9,10 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>rpc-core</artifactId>
+    <artifactId>rpc-consumer-sample</artifactId>
 
+    <!--依赖于 rpc-core 以及 rpc-common 以及 rpc-apj-sample 3 个模块-->
     <dependencies>
-        <!--ZooKeeper 客户端依赖-->
-        <dependency>
-            <groupId>org.apache.curator</groupId>
-            <artifactId>curator-framework</artifactId>
-            <version>${curator-version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.curator</groupId>
-            <artifactId>curator-recipes</artifactId>
-            <version>${curator-version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.esotericsoftware</groupId>
-            <artifactId>kryo</artifactId>
-            <version>${kryo-version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>cglib</groupId>
-            <artifactId>cglib</artifactId>
-            <version>${cglib-version}</version>
-        </dependency>
-
-
-        <!--项目其他模块依赖-->
         <dependency>
             <groupId>cool.spongecaptain</groupId>
             <artifactId>rpc-common</artifactId>
@@ -46,11 +21,14 @@
 
         <dependency>
             <groupId>cool.spongecaptain</groupId>
-            <artifactId>rpc-api-sample</artifactId>
+            <artifactId>rpc-core</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
 
-
-
+        <dependency>
+            <groupId>cool.spongecaptain</groupId>
+            <artifactId>rpc-api-sample</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
     </dependencies>
 </project>

@@ -11,6 +11,9 @@
     <modules>
         <module>rpc-core</module>
         <module>rpc-common</module>
+        <module>rpc-api-sample</module>
+        <module>rpc-consumer-sample</module>
+        <module>rpc-provider-sample</module>
     </modules>
 
     <properties>
@@ -18,6 +21,7 @@
         <curator-version>5.1.0</curator-version>
         <slf4j-version>1.7.25</slf4j-version>
         <kryo-version>5.0.0</kryo-version>
+        <cglib-version>3.3.0</cglib-version>
     </properties>
 
 

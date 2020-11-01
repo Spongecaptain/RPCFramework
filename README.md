@@ -93,3 +93,54 @@ Magic Number + versionNumber + serializaitonID + commandID + dataLength + data
 ```
 
 > TODO commandID 需要么？这是存疑的？
+
+## 3. RPC 代理策略
+
+RPC 代理类为 cool.spongecaptain.proxy.RpcProxy。
+
+Apache Dubbo 是一个被广泛使用的 Java RPC 框架，其通过 Spring XML 扩展的方式实现了对代理的封装，详细实现可以参考我的博文：[Spring XML schema 扩展机制](https://spongecaptain.cool/post/spring/spring_xml_schema/)
+
+下面是一个例子（来自于 [dubbo-samples/dubbo-samples-basic](https://github.com/Spongecaptain/dubbo-samples) 模块）：
+
+```java
+public class BasicConsumer {
+  public static void main(String[] args) {
+    //1. 加载配置
+    ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("spring/dubbo-demo-consumer.xml");
+    //2. 获取消费代理
+    context.start();
+    DemoService demoService = (DemoService) context.getBean("demoService");
+    //改为调用 3 次
+    for (int i = 0; i < 3; i++) {
+      //3. 调用远程方法
+      String hello = demoService.sayHello("world");
+      //在控制台输出红色更醒目一点
+      System.err.println(hello);
+    }
+    //System.in.read(); 用于避免 Consumer 的 main 方法暂停运行
+    try {
+      System.in.read();
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
+}
+```
+
+对于 BasicConsumer 客户端而言，Dubbo 做到了将 `demoService.sayHello("world")` 方法的调用过程中的 RPC 过程完全向上屏蔽。
+
+但对于我们的简单 RPC 框架而言，并不需要隔离地如此彻底，因此我采用了 CGLIB 作为动态代理实现框架，实现了如下功能：通过向 RpcProxy#newInstance 方法传入接口名，能够得到接口的 RPC 代理实现类。代理实现类提供了如下的逻辑：将方法的调用转换为 RpcRequest 实例，然后将 RpcRequest 实例交给 NettyRpcClient 来进行处理。
+
+## 4. 启动类
+
+- 客户端启动类的具体类型为：cool.spongecaptain.ConsumerBootstrap
+- 服务端启动类的具体类型为：cool.spongecaptain.ProviderBootstrap
+
+按序运行上述两个启动类的 main 方法就能够测试 rpc 框架的可行性，如果 ZooKeeper 配置没有错误，那么你在控制台上就能够得到如下的结果：
+
+> From ConsumerBootstrap: sayHello result: Hello spongecaptain !
+> From ConsumerBootstrap: add result: 3
+
+## 5. 框架说明
+
+TODO
