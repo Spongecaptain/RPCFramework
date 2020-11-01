@@ -139,6 +139,7 @@ public class BasicConsumer {
 按序运行上述两个启动类的 main 方法就能够测试 rpc 框架的可行性，如果 ZooKeeper 配置没有错误，那么你在控制台上就能够得到如下的结果：
 
 > From ConsumerBootstrap: sayHello result: Hello spongecaptain !
+>
 > From ConsumerBootstrap: add result: 3
 
 ## 5. 框架说明
