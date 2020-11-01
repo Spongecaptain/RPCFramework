@@ -86,7 +86,12 @@ public class CuratorUtil {
         try {
             getStartedClient().create().creatingParentContainersIfNeeded().forPath(fullPath, data.getBytes());
         } catch (Exception e) {
-            throw new RpcException("Fail to create " + path + "with value of " + data + " in ZooKeeper Server on " + SERVER_LIST);
+            //如果异常是因为节点已经存在，我们应当尝试进行节点数据的更新，如果再出错，那么就抛出异常
+            try {
+                getStartedClient().setData().forPath(fullPath,data.getBytes());
+            } catch (Exception exception) {
+                throw new RpcException("Fail to create " + path + "with value of " + data + " in ZooKeeper Server on " + SERVER_LIST);
+            }
         }
     }
 
