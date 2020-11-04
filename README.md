@@ -1,17 +1,20 @@
 # README
 
-> README 文档会逐步补充完善。
->
 > 本项目使用了若干个来自于 [Dubbo]() 的术语，项目结构上也相当程度上参考了 Dubbo。
 
 这个项目是一个简单的 RPC 框架，将依赖于：
 
-- ZooKeeper（包括 ZooKeeper 客户端 Curator）；
+- ZooKeeper（包括 ZooKeeper 客户端 Curator）：用于实现服务注册；
+- Netty：用于实现底层通信协议实现以及 NIO 式网络传输；
+- CGLIB：实现动态代理，用于向 Consumer 隐藏 RPC 远程调用中的网络通信过程；
 
 模块分为如下：
 
 - rpc-common：一些公共类，例如异常；
 - rpc-core：RPC 的核心功能，例如服务注册；
+- rpc-api-sample：定义了接口以及接口的具体实现类，一并提供给 Consumer 以及 Provider；
+- rpc-consumer-sample：提供一个客户端启动类，用于演示 Consumer 进行 RPC 调用；
+- rpc-provider-sample：提供一个服务端启动类，用于演示 Provider 进行 RPC 调用；
 
 ## 1. 注册中心
 
