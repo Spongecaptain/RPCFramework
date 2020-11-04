@@ -36,8 +36,7 @@ public class ChannelProvider {
              return channel;
          }
          //移除无效缓存
-         channelCache.remove(channelCache);
-
+         channelCache.remove(key);
          try {
              //重连接
              channel = nettyClient.doConnect(inetSocketAddress, RETRY_TIMES);
