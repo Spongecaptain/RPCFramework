@@ -19,6 +19,7 @@ public class UnprocessedRequests {
     public static void complete(RpcResponse<Object> rpcResponse) {
         CompletableFuture<RpcResponse<Object>> future = UNPROCESSED_RESPONSE_FUTURES.remove(rpcResponse.getRequestId());
         if (null != future) {
+            //将网络 I/O 的处理响应放到 Future 中
             future.complete(rpcResponse);
         } else {
             throw new IllegalStateException();

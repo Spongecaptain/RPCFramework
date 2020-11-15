@@ -147,4 +147,4 @@ public class BasicConsumer {
 
 ## 5. 框架说明
 
-TODO
+可以参考个人的博客：https://spongecaptain.cool/post/rpc/myrpcframework/
