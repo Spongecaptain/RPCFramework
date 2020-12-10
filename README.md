@@ -7,6 +7,7 @@
 - ZooKeeper（包括 ZooKeeper 客户端 Curator）：用于实现服务注册；
 - Netty：用于实现底层通信协议实现以及 NIO 式网络传输；
 - CGLIB：实现动态代理，用于向 Consumer 隐藏 RPC 远程调用中的网络通信过程；
+- Kryo：Kryo 是本项目的第三方序列化框架；
 
 模块分为如下：
 
