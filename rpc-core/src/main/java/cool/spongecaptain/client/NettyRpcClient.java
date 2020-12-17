@@ -38,7 +38,7 @@ public class NettyRpcClient implements RpcClient {
     }
 
     @Override
-    public Object sendResponse(RpcRequest request) {
+        public Object sendResponse(RpcRequest request) {
         //1. 得到接口的完全限定名，也就是服务名
         String serviceName = request.getInterfaceName();
         //2. 进行服务的查询
@@ -53,6 +53,7 @@ public class NettyRpcClient implements RpcClient {
 
         channel.writeAndFlush(request).addListener((ChannelFutureListener) future -> {
             if (future.isSuccess()) {
+                //注意，这里仅仅是 Consumer 向 Provider 成功完成了请求的发送，但是并没有收到 response
                 logger.info("client send message: [{}]", request);
             } else {
                 future.channel().close();

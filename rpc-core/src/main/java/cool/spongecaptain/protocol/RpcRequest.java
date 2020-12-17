@@ -11,7 +11,7 @@ public class RpcRequest {
     //请求 id，注意其为 String 类型，这个 id 用于 request 以及 response 的一一对应
     private String requestId;
     //RPC 消息类型
-    private RpcRequestType rpcMessageType;
+    private final static RpcRequestType rpcMessageType = RpcRequestType.CALL;
     //版本号
     private String version;
     //组别
@@ -34,7 +34,6 @@ public class RpcRequest {
 
     private RpcRequest(Builder builder) {
         this.requestId = builder.requestId;
-        this.rpcMessageType = builder.rpcMessageType;
         this.version = builder.version;
         this.group = builder.group;
         this.interfaceName = builder.interfaceName;
@@ -53,10 +52,6 @@ public class RpcRequest {
 
     public RpcRequestType getRpcMessageType() {
         return rpcMessageType;
-    }
-
-    public void setRpcMessageType(RpcRequestType rpcMessageType) {
-        this.rpcMessageType = rpcMessageType;
     }
 
     public String getVersion() {
