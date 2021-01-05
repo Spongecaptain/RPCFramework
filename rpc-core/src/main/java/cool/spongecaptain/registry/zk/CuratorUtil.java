@@ -49,8 +49,9 @@ public class CuratorUtil {
                             .retryPolicy(retryPolicy)
                             .build();
             client.start();
+            logger.info("Create A CuratorFramework Instance");
         }
-        logger.info("Create A CuratorFramework Instance");
+
         return client;
     }
 
@@ -68,7 +69,7 @@ public class CuratorUtil {
         String fullPath = turnPathIntoFullPath(path);
         try {
             childNodeList = getStartedClient().getChildren().forPath(fullPath);
-            setChildWatcher(fullPath, serviceDiscovery);
+            setChildWatcher(path, serviceDiscovery);
         } catch (Exception e) {
             throw new RpcException("Fail to get child node");
         }
@@ -77,7 +78,7 @@ public class CuratorUtil {
 
     /**
      * 为 path （相对于 NAMESPACE）以 data 创建节点
-     * 如果没有上层阶段，Curator 会替我们创建
+     * 如果没有上层节点，Curator 会替我们创建
      * @param path
      * @param data
      */
@@ -148,19 +149,20 @@ public class CuratorUtil {
                 case CHILD_ADDED:
                     byte[] dataBytes = client1.getData().forPath(childPath);
                     String nodeData = new String(dataBytes);
-                    serviceDiscovery.addCache(serviceName, nodeData);
-                    logger.info("添加了一个新节点" + serviceName + " " + nodeData);
+                    //serviceDiscovery.addCache(serviceName, nodeData);
+                    //logger.info("添加了一个新节点" + serviceName + " " + nodeData);
                     break;
                 //节点删除事件
                 case CHILD_REMOVED:
-                    serviceDiscovery.deleteCache(serviceName);
+                    //TODO 基于 ZooKeeper 的注册中心数据更新策略需要重写
+                    //serviceDiscovery.deleteCache(serviceName);
                     logger.info("删除了一个缓存" + serviceName);
                     break;
                 //节点更新事件
                 case CHILD_UPDATED:
                     byte[] dataBytes2 = client1.getData().forPath(childPath);
                     String nodeData2 = new String(dataBytes2);
-                    serviceDiscovery.updateCache(serviceName, nodeData2);
+                    //serviceDiscovery.updateCache(serviceName, nodeData2);
                     logger.info("更新了一个缓存 " + serviceName + nodeData2);
                     break;
                 default:
@@ -266,7 +268,7 @@ public class CuratorUtil {
 
         String nodeData = new String(resultBytes);
         //更新缓存
-        serviceDiscovery.updateCache(path, nodeData);
+        //serviceDiscovery.updateCache(path, nodeData);
         return nodeData;
     }
 }

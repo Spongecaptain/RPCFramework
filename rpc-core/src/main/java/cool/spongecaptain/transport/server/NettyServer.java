@@ -15,11 +15,8 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import io.netty.handler.timeout.IdleStateHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.concurrent.TimeUnit;
 
 public class NettyServer {
 
@@ -29,11 +26,15 @@ public class NettyServer {
 
     EventLoopGroup workerGroup;
 
-    public static final int PORT = 8233;
+    public  final int PORT;
 
     private static final Logger logger = LoggerFactory.getLogger(NettyServer.class);
 
-    public NettyServer() {
+    public NettyServer(int port) {
+
+        this.PORT = port;
+
+
         bootstrap = new ServerBootstrap();
         bossGroup = new NioEventLoopGroup(1);
         workerGroup = new NioEventLoopGroup();

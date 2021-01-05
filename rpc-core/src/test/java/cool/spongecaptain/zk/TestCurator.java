@@ -4,7 +4,6 @@ import cool.spongecaptain.registry.zk.ZKServiceDiscovery;
 import org.junit.Test;
 
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
 
 import static cool.spongecaptain.registry.zk.CuratorUtil.getChildrenNodes;
 
@@ -32,10 +31,10 @@ public class TestCurator {
             e.printStackTrace();
         }
 
-        ConcurrentHashMap<String, String> cache = zkServiceDiscovery.getCache();
+        //ConcurrentHashMap<String, List<ServiceInfo>> cache = zkServiceDiscovery.getCache();
 
-        for(String key:cache.keySet()){
-            System.out.println(key+" "+ cache.get(key));
-        }
+      //  for(String key:cache.keySet()){
+        //    System.out.println(key+" "+ cache.get(key));
+        //}
     }
 }

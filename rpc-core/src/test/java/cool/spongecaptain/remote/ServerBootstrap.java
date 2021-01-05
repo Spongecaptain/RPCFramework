@@ -4,7 +4,7 @@ import cool.spongecaptain.transport.server.NettyServer;
 
 public class ServerBootstrap {
     public static void main(String[] args) {
-        NettyServer nettyServer = new NettyServer();
+        NettyServer nettyServer = new NettyServer(8234);
         nettyServer.start();
     }
 }

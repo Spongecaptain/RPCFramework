@@ -32,7 +32,7 @@ public class NettyRpcServer implements RpcServer {
         ZKServiceRegistry zkServiceRegistry = new ZKServiceRegistry();
 
         interfaces.forEach((String interfaceName) -> {
-            zkServiceRegistry.registerService(interfaceName, "localhost:"+String.valueOf(port));
+            zkServiceRegistry.registerService(interfaceName, "localhost:"+ port,1);
         });
         //4. 我们需要进行服务具体实现类的构造，然后将具体实例添加到 RequestHandler 实例中去
         impls.forEach((String impl) -> {
@@ -56,7 +56,7 @@ public class NettyRpcServer implements RpcServer {
 
 
         //5.启动 NettyServer 提供 RPC 服务
-        NettyServer nettyServer = new NettyServer();
+        NettyServer nettyServer = new NettyServer(port);
         nettyServer.start();
 
     }

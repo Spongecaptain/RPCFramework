@@ -1,17 +1,19 @@
 package cool.spongecaptain.client;
 
+import cool.spongecaptain.loadbalance.LoadBalance;
 import cool.spongecaptain.protocol.RpcRequest;
 import cool.spongecaptain.protocol.RpcResponse;
 import cool.spongecaptain.registry.ServiceDiscovery;
+import cool.spongecaptain.registry.ServiceInfo;
 import cool.spongecaptain.transport.client.ChannelProvider;
 import cool.spongecaptain.transport.client.UnprocessedRequests;
 import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
@@ -32,17 +34,34 @@ public class NettyRpcClient implements RpcClient {
 
     private static Logger logger = LoggerFactory.getLogger(NettyRpcClient.class);
 
-    public NettyRpcClient(ServiceDiscovery serviceDiscovery, ChannelProvider channelProvider) {
+    //负载均衡器
+
+    final private LoadBalance loadBalance;
+
+    public NettyRpcClient(ServiceDiscovery serviceDiscovery, ChannelProvider channelProvider,LoadBalance loadBalance) {
         this.serviceDiscovery = serviceDiscovery;
         this.channelProvider = channelProvider;
+        this.loadBalance = loadBalance;
     }
 
+    //TODO 引入负载均衡组件
     @Override
-        public Object sendResponse(RpcRequest request) {
+    public Object sendResponse(RpcRequest request) {
         //1. 得到接口的完全限定名，也就是服务名
         String serviceName = request.getInterfaceName();
         //2. 进行服务的查询
-        InetSocketAddress inetSocketAddress = serviceDiscovery.lookForService(serviceName);
+        List<ServiceInfo> serviceList = serviceDiscovery.lookForService(serviceName);
+        String address = loadBalance.getServerAddress(request,serviceList);
+
+        //将 localhost:8233 的地址分别得到 hostName 以及端口
+
+        String[] split = address.split(":");
+
+        String host = split[0];
+        String port = split[1];
+
+        InetSocketAddress inetSocketAddress = new InetSocketAddress(host,Integer.parseInt(port));
+
         //3. 利用 ChannelProvider 进行消的传输（其底层依赖于 NettyClient）
         Channel channel = channelProvider.getChannel(inetSocketAddress);
         //4. 得到 RpcRequest 请求对应的处理结果：注意 RpcResponse 并不会通过 ChannelFuture 返回，而是通过另一个异步过程，因此需要 UnprocessedRequests 类的帮助

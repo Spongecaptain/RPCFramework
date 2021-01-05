@@ -1,13 +1,5 @@
 package cool.spongecaptain.zk;
 
-import cool.spongecaptain.exception.RpcException;
-import cool.spongecaptain.registry.ServiceDiscovery;
-import cool.spongecaptain.registry.ServiceRegistry;
-import cool.spongecaptain.registry.zk.CuratorUtil;
-import cool.spongecaptain.registry.zk.ZKServiceDiscovery;
-import cool.spongecaptain.registry.zk.ZKServiceRegistry;
-import org.junit.Test;
-
 public class TestRegistry {
 
 //    @Test

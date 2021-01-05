@@ -138,7 +138,7 @@ public class BasicConsumer {
 ## 4. 启动类
 
 - 客户端启动类的具体类型为：cool.spongecaptain.ConsumerBootstrap
-- 服务端启动类的具体类型为：cool.spongecaptain.ProviderBootstrap
+- 服务端启动类的具体类型为：cool.spongecaptain.ProviderBootstrap1
 
 按序运行上述两个启动类的 main 方法就能够测试 rpc 框架的可行性，如果 ZooKeeper 配置没有错误，那么你在控制台上就能够得到如下的结果：
 

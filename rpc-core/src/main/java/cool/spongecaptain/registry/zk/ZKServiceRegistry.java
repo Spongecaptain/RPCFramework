@@ -4,9 +4,12 @@ import cool.spongecaptain.registry.ServiceRegistry;
 
 public class ZKServiceRegistry implements ServiceRegistry {
 
-    @Override
-    public void registerService(String serviceName, String address) {
-        CuratorUtil.createPersistentNode(serviceName, address);
+
+    public void registerService(String serviceName, String address, int weight) {
+        //TODO 这个服务注册方法需要进行修改
+        //我们实际上向 ZooKeeper 注册的节点应当是（不讨论上层节点）：节点名：cool.spongecaptain.Echo/Provider/ip，节点 value :权值
+        String nodeName = serviceName + "/" + "Provider" + "/" + address;
+        CuratorUtil.createPersistentNode(nodeName, String.valueOf(weight));
     }
 
     /**

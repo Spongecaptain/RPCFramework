@@ -1,9 +1,9 @@
 package cool.spongecaptain.registry.zk;
 
-import cool.spongecaptain.exception.RpcException;
 import cool.spongecaptain.registry.ServiceDiscovery;
+import cool.spongecaptain.registry.ServiceInfo;
 
-import java.net.InetSocketAddress;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -12,58 +12,38 @@ public class ZKServiceDiscovery  implements ServiceDiscovery {
      * key 为 serviceName
      * value 为提供该服务的 IP 地址+端口
      */
-    private ConcurrentHashMap<String,String> cache = new ConcurrentHashMap<>();
+
+    //此时返回的内容应当是一个 List<ServiceInfo> 集合
+
+    private final ConcurrentHashMap<String, List<ServiceInfo>> cache = new ConcurrentHashMap<>();
+
+
     @Override
-    public InetSocketAddress lookForService(String serviceName) {
+    public List<ServiceInfo> lookForService(String serviceName) {
         //缓存优先
-        if (cache.contains(serviceName)) {
-            //这里负责将 IP:PORT 字符串进行解析
-            String s = cache.get(serviceName);
-            String[] split = s.split(":");
-            return  new InetSocketAddress(split[0],Integer.parseInt(split[1]));
+        List<ServiceInfo> serviceList;
+        if(cache.contains(serviceName)){
+            return cache.get(serviceName);
         }else{
+            //获取当前服务对应的所有服务提供者的地址：获取 serviceName/Provider 节点下的所有子节点
+            List<String> addresses = CuratorUtil.getChildrenNodes(serviceName+"/Provider",this);
+            //获取上述地址中所有节点的值，即权重
+            serviceList = new ArrayList<>();
 
-            //如果 serviceName 为 NAMESPACE，说明想要获取所有 NAMESPACE 下的所有子节点，其不注重返回值
-            if(serviceName.equals(CuratorUtil.NAME_SPACE)){
-                //1. 获得 /rpc 根节点下的所有节点列表(这个操作会默认将注册信息缓存到 cache 中)
-                List<String> childrenNodes = CuratorUtil.getChildrenNodes(serviceName, this);
-                //2. 检查 List 是否为空
-                if(childrenNodes==null||childrenNodes.size() ==0){
-                    throw new RpcException("/rpc 没有找到任何服务 "+serviceName);
+            //同一个 Client 并不需要多线程地进行更新，因此这里进行上锁处理，不过需要进行 double-check 机制，避免重复进行缓存更新
+            synchronized (cache){
+                if(!cache.contains(serviceName)){
+                    for (int i = 0; i < addresses.size(); i++) {
+                        //得到节点对应的权重
+                        String weight = CuratorUtil.getData(serviceName+"/Provider/"+addresses.get(i),this);
+                        serviceList.add(new ServiceInfo(addresses.get(i),Integer.parseInt(weight),-1));
+                    }
+                    //缓存来自 ZooKeeper 的查询结果
+                    cache.put(serviceName,serviceList);
                 }
-
-                return null;
-             //说明只是想获取某一个节点的数据
-            }else{
-                    String nodeData = CuratorUtil.getData(serviceName, this);
-                    //这里负责将 IP:PORT 字符串进行解析
-                String[] split = nodeData.split(":");
-                return  new InetSocketAddress(split[0],Integer.parseInt(split[1]));
             }
+
         }
-
-
-
-    }
-
-
-    @Override
-    public void deleteCache(String serviceName) {
-        cache.remove(serviceName);
-    }
-
-    @Override
-    public void updateCache(String serviceName, String address) {
-        addCache(serviceName,address);
-    }
-
-    @Override
-    public void addCache(String serviceName, String address) {
-        cache.put(serviceName,address);
-    }
-
-
-    public ConcurrentHashMap<String, String> getCache(){
-        return cache;
+        return serviceList;
     }
 }
