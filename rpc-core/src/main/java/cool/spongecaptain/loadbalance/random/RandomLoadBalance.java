@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Random;
 
 /**
- * 随机权重
+ * 简单随机
  */
 public class RandomLoadBalance implements LoadBalance {
 

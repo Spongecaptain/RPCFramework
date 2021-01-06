@@ -1,6 +1,6 @@
 # README
 
-> 本项目使用了若干个来自于 [Dubbo]() 的术语，项目结构上也相当程度上参考了 Dubbo。
+> 本项目使用了若干个来自于 [Dubbo](https://dubbo.apache.org/) 的术语，项目结构上也相当程度上参考了 Dubbo。
 
 这个项目是一个简单的 RPC 框架，将依赖于：
 
@@ -23,14 +23,12 @@ Dubbo 中使用 ZooKeeper 服务中心如下图所示：
 
 ![/user-guide/images/zookeeper.jpg](doc/images/zookeeper.jpg)
 
-我将上述注册中心模型进行简化（我们没有必要如此复杂），如下图所示：
-
-![](doc/images/myZookeeper.png)
+我将上述注册中心模型进行简化（我们没有必要如此复杂），将 consumers 节点去除。
 
 在根节点 `/rpc` 下的每一个节点都是服务节点：
 
 - 节点的 path：一个接口的完全限定名，例如图中的 cool.spongecaptain.Foo 接口；
-- 节点的 data：能够提供此接口的服务的服务器地址，例如 localhost:2222；
+- 服务节点的子节点 path：能够提供此接口的服务的服务器地址，例如 localhost:2222，其 value 对应于服务权重。
 
 注册中心能够提供的功能有：
 
@@ -135,17 +133,47 @@ public class BasicConsumer {
 
 但对于我们的简单 RPC 框架而言，并不需要隔离地如此彻底，因此我采用了 CGLIB 作为动态代理实现框架，实现了如下功能：通过向 RpcProxy#newInstance 方法传入接口名，能够得到接口的 RPC 代理实现类。代理实现类提供了如下的逻辑：将方法的调用转换为 RpcRequest 实例，然后将 RpcRequest 实例交给 NettyRpcClient 来进行处理。
 
-## 4. 启动类
+## 4. 负载均衡
 
-- 客户端启动类的具体类型为：cool.spongecaptain.ConsumerBootstrap
-- 服务端启动类的具体类型为：cool.spongecaptain.ProviderBootstrap1
+负载均衡是本框架新添加的功能，其接口设计如下：
 
-按序运行上述两个启动类的 main 方法就能够测试 rpc 框架的可行性，如果 ZooKeeper 配置没有错误，那么你在控制台上就能够得到如下的结果：
+```java
+public interface LoadBalance {
+    //String 对应于能够提供服务的服务器地址
+    String getServerAddress(RpcRequest request, List<ServiceInfo> serverList);
+}
+```
+
+我将负载均衡器接口根据函数式编程思想进行设计，其具体输出只与方法的输入参数有关，而没有任何状态。 这种设计既去耦合，又线程并发安全，符合接口设计规范。
+
+具体的负载均衡器有如下若干种类型设计：
+
+- RandomLoadBalance：简单随机；
+- WeightRandomLoadBalance：权重随机（这是默认的使用策略）；
+- ConsistentHashLoadBalance：一致性 Hash；
+- LeastActiveLoadBalance：最少调用数优先；
+- RoundRobinLoadBalance：轮询策略；
+
+关于负载均衡策略，更多的内容可以参考我个人博客的文章：：https://spongecaptain.cool/post/rpc/addLoadbalanceIntorpc
+
+## 5. 启动类
+
+- 客户端启动类的具体类型为 rpc-consumer-sample 模块下的 cool.spongecaptain.ConsumerBootstrap 类；
+- 服务端启动类的具体类型为 rpc-provider-sample 模块下的 ：
+  - cool.spongecaptain.ProviderBootstrap1 类
+  - cool.spongecaptain.ProviderBootstrap2 类
+
+其中，两个 Provider 监听本地不同的服务器端口，作为两个不同的 RPC 服务提供这。
 
 > From ConsumerBootstrap: sayHello result: Hello spongecaptain !
 >
 > From ConsumerBootstrap: add result: 3
 
-## 5. 框架说明
+## 6. 框架说明
 
 可以参考个人的博客：https://spongecaptain.cool/post/rpc/myrpcframework/
+
+## 7. TODO
+
+- [ ] 利用配置文件，使各个组件可以根据配置动态可替换；
+

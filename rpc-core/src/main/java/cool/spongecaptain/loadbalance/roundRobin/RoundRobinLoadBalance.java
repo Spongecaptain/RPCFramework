@@ -17,7 +17,6 @@ public class RoundRobinLoadBalance implements LoadBalance {
     //为每一个 RPC 的服务名创建一个轮询的索引计数
     //key 服务名，value 轮询所用的索引
     final Map<String, AtomicInteger> roundRobinMap = new HashMap<>();
-
     //注意线程安全性！！！！
     @Override
     public String getServerAddress(RpcRequest rpcRequest, List<ServiceInfo> serverList) {
@@ -34,17 +33,13 @@ public class RoundRobinLoadBalance implements LoadBalance {
                 }
             }
         }
-
-
         //进行取余操作
         int serverListIndex = Math.abs(index.incrementAndGet() % serverList.size());
         //返回地址
         return serverList.get(serverListIndex).getAddress();
-
         /**
          * 注意，虽然 AtomicInteger 会有溢出的危险，但是当 AtomicInteger 达到最大值以后，
          * 并不会继续增大，而是会转换为 -2147483648，因此，只要进行取取余后的值进行取绝对值，就符合本轮询的使用方式（取余无所谓从整数变为负数）
          */
     }
-
 }

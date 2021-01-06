@@ -17,9 +17,7 @@ public class ConsistentHashLoadBalance implements LoadBalance {
     public String getServerAddress(RpcRequest rpcRequest, List<ServiceInfo> serverList) {
 
         //从入口参数 List<ServiceInfo> serverList 处进行构造 Hash 环
-
         SortedMap<Integer, String> sortedMap = new TreeMap<>();
-
         /**
          * 利用 serverList 来构造 Hash 环:
          * 不过事实上并没有单独的 Hash 环作为数据结构，
