@@ -154,7 +154,7 @@ public interface LoadBalance {
 - LeastActiveLoadBalance：最少调用数优先；
 - RoundRobinLoadBalance：轮询策略；
 
-关于负载均衡策略，更多的内容可以参考我个人博客的文章：：https://spongecaptain.cool/post/rpc/addLoadbalanceIntorpc
+关于负载均衡策略，更多的内容可以参考我个人博客的文章：：https://spongecaptain.cool/post/rpc/addloadbalanceintorpc/
 
 ## 5. 启动类
 
