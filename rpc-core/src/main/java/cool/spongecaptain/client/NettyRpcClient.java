@@ -44,7 +44,11 @@ public class NettyRpcClient implements RpcClient {
         this.loadBalance = loadBalance;
     }
 
-    //TODO 引入负载均衡组件
+    /**
+     * 这是一个同步阻塞方法，当客户端调用时，阻塞直到服务端将相关 RPC 请求的响应返回给客户端
+     * @param request
+     * @return
+     */
     @Override
     public Object sendResponse(RpcRequest request) {
         //1. 得到接口的完全限定名，也就是服务名
@@ -62,7 +66,7 @@ public class NettyRpcClient implements RpcClient {
 
         InetSocketAddress inetSocketAddress = new InetSocketAddress(host,Integer.parseInt(port));
 
-        //3. 利用 ChannelProvider 进行消的传输（其底层依赖于 NettyClient）
+        //3. 利用 ChannelProvider 进行消息的传输（其底层依赖于 NettyClient）
         Channel channel = channelProvider.getChannel(inetSocketAddress);
         //4. 得到 RpcRequest 请求对应的处理结果：注意 RpcResponse 并不会通过 ChannelFuture 返回，而是通过另一个异步过程，因此需要 UnprocessedRequests 类的帮助
         CompletableFuture<RpcResponse<Object>> resultFuture = new CompletableFuture<>();
@@ -70,7 +74,7 @@ public class NettyRpcClient implements RpcClient {
         Object result = null;
         UnprocessedRequests.put(request.getRequestId(), resultFuture);
 
-        channel.writeAndFlush(request).addListener((ChannelFutureListener) future -> {
+        channel.write(request).addListener((ChannelFutureListener) future -> {
             if (future.isSuccess()) {
                 //注意，这里仅仅是 Consumer 向 Provider 成功完成了请求的发送，但是并没有收到 response
                 logger.info("client send message: [{}]", request);
@@ -82,6 +86,7 @@ public class NettyRpcClient implements RpcClient {
         });
 
         try {
+            //sendRequest 阻塞等待服务端返回 rpc 请求的处理结果
             result = resultFuture.get().getBody();
         } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();

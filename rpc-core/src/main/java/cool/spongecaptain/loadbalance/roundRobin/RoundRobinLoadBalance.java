@@ -39,7 +39,7 @@ public class RoundRobinLoadBalance implements LoadBalance {
         return serverList.get(serverListIndex).getAddress();
         /**
          * 注意，虽然 AtomicInteger 会有溢出的危险，但是当 AtomicInteger 达到最大值以后，
-         * 并不会继续增大，而是会转换为 -2147483648，因此，只要进行取取余后的值进行取绝对值，就符合本轮询的使用方式（取余无所谓从整数变为负数）
+         * 并不会继续增大，而是会转换为 -2147483648，因此，只要进行取取余后的值进行取绝对值，就符合本轮询的使用方式（取余无所谓从正数变为负数）
          */
     }
 }

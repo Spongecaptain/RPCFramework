@@ -4,9 +4,9 @@ import cool.spongecaptain.exception.RpcException;
 import cool.spongecaptain.serialize.kyro.KryoSerialization;
 import cool.spongecaptain.transport.codec.ByteDecoder;
 import cool.spongecaptain.transport.codec.MessageEncoder;
-import cool.spongecaptain.transport.handler.MyIdleStateHandler;
 import cool.spongecaptain.transport.server.handler.HeatBeatRequestHandler;
 import cool.spongecaptain.transport.server.handler.RpcRequestHandler;
+import cool.spongecaptain.transport.server.handler.ServerIdleHandler;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
@@ -15,8 +15,11 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.handler.timeout.IdleStateHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.concurrent.TimeUnit;
 
 public class NettyServer {
 
@@ -29,6 +32,8 @@ public class NettyServer {
     public  final int PORT;
 
     private static final Logger logger = LoggerFactory.getLogger(NettyServer.class);
+
+    public static final int SERVER_IDLE_TIME = 30;
 
     public NettyServer(int port) {
 
@@ -47,16 +52,17 @@ public class NettyServer {
                 .childHandler(new ChannelInitializer<SocketChannel>() {
                     @Override
                     protected void initChannel(SocketChannel ch) throws Exception {
-                        //Server-in1/out2：用于长时间未通信后的 TCP 关闭
-                        ch.pipeline().addLast(new MyIdleStateHandler());
-                        //Server-in2：Decoder 负责将 ByteBuf 的字节数据转换为 RpcRequest 实例
+                        //Decoder 负责将 ByteBuf 的字节数据转换为 RpcRequest or Rpc 实例
                         ch.pipeline().addLast(new ByteDecoder(new KryoSerialization()));
-                        //Server-in3：RPCRequestHandler 负责处理 RpcRequest 对应的 RPC 方法，执行后产生对应的 RPCResponse 实例返回
+                        //idle 检测
+                        ch.pipeline().addLast(new IdleStateHandler(0,0,SERVER_IDLE_TIME, TimeUnit.SECONDS));
+                        //响应 Idle 事件，关闭连接
+                        ch.pipeline().addLast(new ServerIdleHandler());
+                        //RPCRequestHandler 负责处理 RpcRequest 对应的 RPC 方法，执行后产生对应的 RPCResponse 实例返回
                         ch.pipeline().addLast(new RpcRequestHandler());
-                        //Server-out1：Encoder 负责将 RPCResponse 转换为 ByteBuf，然后再向前传播
+                        //Encoder 负责将 RPCResponse 转换为 ByteBuf，然后再向前传播
                         ch.pipeline().addLast(new MessageEncoder(new KryoSerialization()));
-
-                        //为服务端添加一个心跳处理 Handler
+                        //心跳处理 Handler
                         ch.pipeline().addLast(new HeatBeatRequestHandler());
                     }
                 });

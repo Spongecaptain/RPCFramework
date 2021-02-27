@@ -1,11 +1,10 @@
 package cool.spongecaptain.transport.client;
 
 import cool.spongecaptain.serialize.kyro.KryoSerialization;
-import cool.spongecaptain.transport.client.handler.HeartBeatTimerHandler;
+import cool.spongecaptain.transport.client.handler.ClientIdleHandler;
 import cool.spongecaptain.transport.client.handler.RpcResponseHandler;
 import cool.spongecaptain.transport.codec.ByteDecoder;
 import cool.spongecaptain.transport.codec.MessageEncoder;
-import cool.spongecaptain.transport.handler.MyIdleStateHandler;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFutureListener;
@@ -30,6 +29,8 @@ public class NettyClient {
 
     private NioEventLoopGroup workerGroup;
 
+    public static final int CLIENT_IDLE_TIME = 10;//应当设置为是 NettyServer.SERVER_IDLE_TIME 参数的 1/3
+
     private Bootstrap bootstrap;
 
     public NettyClient() {
@@ -44,19 +45,16 @@ public class NettyClient {
                         new ChannelInitializer<SocketChannel>() {
                             @Override
                             protected void initChannel(SocketChannel ch) throws Exception {
-                                //Client-in1/out2：用于长时间未通信后的 TCP 关闭
-                                ch.pipeline().addLast(new MyIdleStateHandler());
-                                //Client-in2：Decoder：负责将 ByteBuf 转换为 RPCResponse 实例
+                                //负责将 ByteBuf 转换为 RPCResponse 实例
                                 ch.pipeline().addLast(new ByteDecoder(new KryoSerialization()));
-                                //Client-in3：负责 RpcResponse 的处理，包括服务端对 request 中指定方法的调用
+                                //idle 检测
+                                ch.pipeline().addLast(new IdleStateHandler(0,0,CLIENT_IDLE_TIME,TimeUnit.SECONDS));
+                                //响应 Idle 事件，发送一个心跳包
+                                ch.pipeline().addLast(new ClientIdleHandler());
+                                //负责 RpcResponse 的处理，包括服务端对 request 中指定方法的调用
                                 ch.pipeline().addLast(new RpcResponseHandler());
-                                //out1：Encoder RPCRequest 转为 ByteBuf 后向前传播
+                                //Encoder RPCRequest 转为 ByteBuf 后向前传播
                                 ch.pipeline().addLast(new MessageEncoder(new KryoSerialization()));
-
-                                //为客户端添加一个定时发送心跳包的 Handler
-                                ch.pipeline().addLast(new HeartBeatTimerHandler());
-
-
                             }
                         }
                 );

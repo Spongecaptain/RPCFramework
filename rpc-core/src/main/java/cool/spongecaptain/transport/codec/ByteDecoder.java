@@ -36,7 +36,7 @@ public class ByteDecoder extends ByteToMessageDecoder {
         if(in.readableBytes()<MIN_LENGTH ){
             return ;
         }
-        //TODO 我们这里先假设魔数不会出问题，出问题暂时不考虑...，因此这里即使读到数据，也仅仅是起到消费 ByteBuf 数据的作用
+
         in.markReaderIndex();
         //魔数
         int magicNumber = in.readInt();
@@ -68,7 +68,7 @@ public class ByteDecoder extends ByteToMessageDecoder {
         byte[] data = new byte[dataLength];
         in.readBytes(data);
         Object o = serialization.deserialize(data);
-        //将序列化结果作为事件向 Pipeline 上的 ChannelInboundHandler 传递
+        //将序列化结果作为事件向 Pipeline 上的 ChannelInboundHandler 传递，类型即 RpcRequest 或者 RpcHeartBeatRequest
         out.add(o);
     }
 }

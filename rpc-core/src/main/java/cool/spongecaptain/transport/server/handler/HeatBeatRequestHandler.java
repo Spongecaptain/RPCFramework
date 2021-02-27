@@ -15,7 +15,7 @@ public class HeatBeatRequestHandler extends SimpleChannelInboundHandler<RpcHeart
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, RpcHeartBeatRequest msg) throws Exception {
         //服务端接收到来自客户端心跳包时，其简单返回一个心跳响应
-        logger.info("server get one heartbeat");
-        ctx.writeAndFlush(new RpcHeartBeatResponse());
+        logger.info("server get one heartbeat from "+ctx.channel().remoteAddress());
+        ctx.channel().writeAndFlush(new RpcHeartBeatResponse());
     }
 }
