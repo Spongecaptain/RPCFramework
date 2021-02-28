@@ -17,6 +17,23 @@ public class ServerIdleHandler extends ChannelDuplexHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(ServerIdleHandler.class);
 
+    //单例模式
+
+    private static ServerIdleHandler serverIdleHandler;
+
+    private ServerIdleHandler(){}
+
+    public static ServerIdleHandler getServerIdleHandler() {
+        if(serverIdleHandler==null){
+            synchronized (ServerIdleHandler.class){
+                if(serverIdleHandler==null){
+                    serverIdleHandler = new ServerIdleHandler();
+                }
+            }
+        }
+        return serverIdleHandler;
+    }
+
     @Override
     public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
         if(evt instanceof IdleStateEvent){

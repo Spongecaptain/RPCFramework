@@ -44,6 +44,8 @@ public class NettyServer {
         bossGroup = new NioEventLoopGroup(1);
         workerGroup = new NioEventLoopGroup();
 
+
+
         bootstrap.group(bossGroup,workerGroup)
                 .channel(NioServerSocketChannel.class)
                 .childOption(ChannelOption.TCP_NODELAY,true)
@@ -57,13 +59,13 @@ public class NettyServer {
                         //idle 检测
                         ch.pipeline().addLast(new IdleStateHandler(0,0,SERVER_IDLE_TIME, TimeUnit.SECONDS));
                         //响应 Idle 事件，关闭连接
-                        ch.pipeline().addLast(new ServerIdleHandler());
+                        ch.pipeline().addLast(ServerIdleHandler.getServerIdleHandler());
                         //RPCRequestHandler 负责处理 RpcRequest 对应的 RPC 方法，执行后产生对应的 RPCResponse 实例返回
-                        ch.pipeline().addLast(new RpcRequestHandler());
+                        ch.pipeline().addLast(RpcRequestHandler.getRpcRequestHandler());
                         //Encoder 负责将 RPCResponse 转换为 ByteBuf，然后再向前传播
                         ch.pipeline().addLast(new MessageEncoder(new KryoSerialization()));
                         //心跳处理 Handler
-                        ch.pipeline().addLast(new HeatBeatRequestHandler());
+                        ch.pipeline().addLast(HeatBeatRequestHandler.getHeartBeatTimerHandler());
                     }
                 });
 

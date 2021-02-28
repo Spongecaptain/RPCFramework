@@ -50,9 +50,9 @@ public class NettyClient {
                                 //idle 检测
                                 ch.pipeline().addLast(new IdleStateHandler(0,0,CLIENT_IDLE_TIME,TimeUnit.SECONDS));
                                 //响应 Idle 事件，发送一个心跳包
-                                ch.pipeline().addLast(new ClientIdleHandler());
+                                ch.pipeline().addLast(ClientIdleHandler.getClientIdleHandler());
                                 //负责 RpcResponse 的处理，包括服务端对 request 中指定方法的调用
-                                ch.pipeline().addLast(new RpcResponseHandler());
+                                ch.pipeline().addLast(RpcResponseHandler.getRpcResponseHandler());
                                 //Encoder RPCRequest 转为 ByteBuf 后向前传播
                                 ch.pipeline().addLast(new MessageEncoder(new KryoSerialization()));
                             }

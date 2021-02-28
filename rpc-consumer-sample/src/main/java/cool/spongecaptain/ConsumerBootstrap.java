@@ -26,24 +26,22 @@ public class ConsumerBootstrap {
 
         //这里进行测试负载均衡算法
 
-        //分别进行 1000 次测试
+        //分别进行 10 次测试
 
-        for (int i = 0; i < 1000; i++) {
+        for (int i = 0; i < 10; i++) {
             //测试 SayHelloInterface#sayHello 方法
             SayHelloInterface sayHello = (SayHelloInterface)rpcProxy.newProxyInstance(SayHelloInterface.class);
             String result = sayHello.sayHello("spongecaptain " + i);
             System.out.println("From ConsumerBootstrap: sayHello result: "+result);
-
         }
 
 
-        for (int i = 0; i < 1000; i++) {
+        for (int i = 0; i < 10; i++) {
             //测试 AddInterface#add 方法
             AddInterface add = (AddInterface)rpcProxy.newProxyInstance(AddInterface.class);
             int addResult = add.add(i-1, i);
             System.out.println("From ConsumerBootstrap: add result: "+addResult);
         }
-
 
     }
 }

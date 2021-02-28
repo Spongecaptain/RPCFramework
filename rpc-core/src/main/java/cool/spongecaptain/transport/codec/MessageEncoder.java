@@ -16,6 +16,7 @@ import io.netty.handler.codec.MessageToByteEncoder;
  *
  * 注意事项：编解码器并不允许使用单例模式，因此必须提供构造器的方式提供编解码器实例
  */
+
 public class MessageEncoder extends MessageToByteEncoder<Object> {
 
     public static final int MAGIC_NUMBER = 0x10241024;
@@ -24,16 +25,11 @@ public class MessageEncoder extends MessageToByteEncoder<Object> {
 
     public static final byte COMMAND_NUMBER =1 ;//1 代表这是 RPC 消息，2 代表简单的心跳包
 
-    private static Serialization serialization;//序列化类实例
+    private Serialization serialization;//序列化类实例
 
-
-
-    private volatile static MessageEncoder messageEncoder;
-
-    public MessageEncoder(Serialization serialization) {
+    public MessageEncoder(Serialization serialization){
         this.serialization = serialization;
     }
-
 
 
     @Override

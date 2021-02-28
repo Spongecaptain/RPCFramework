@@ -16,6 +16,24 @@ import org.slf4j.LoggerFactory;
 
 @ChannelHandler.Sharable
 public class ClientIdleHandler extends ChannelDuplexHandler {
+
+    //单例模式
+    private static ClientIdleHandler clientIdleHandler;
+
+    private ClientIdleHandler() {
+    }
+
+    public static ClientIdleHandler getClientIdleHandler() {
+        if(clientIdleHandler==null){
+            synchronized (ClientIdleHandler.class){
+                if(clientIdleHandler==null){
+                    clientIdleHandler = new ClientIdleHandler();
+                }
+            }
+        }
+        return clientIdleHandler;
+    }
+
     private static final Logger logger = LoggerFactory.getLogger(ClientIdleHandler.class);
 
     @Override
