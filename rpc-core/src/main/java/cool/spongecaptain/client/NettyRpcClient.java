@@ -50,7 +50,7 @@ public class NettyRpcClient implements RpcClient {
      * @return
      */
     @Override
-    public Object sendResponse(RpcRequest request) {
+    public Object sendRequest(RpcRequest request) {
         //1. 得到接口的完全限定名，也就是服务名
         String serviceName = request.getInterfaceName();
         //2. 进行服务的查询

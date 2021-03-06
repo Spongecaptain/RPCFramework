@@ -42,7 +42,7 @@ public class RpcProxy  implements MethodInterceptor {
 
         RpcRequest request = requestBuilder.setVersion(rpcClientConfig.getVersion()).setGroup(rpcClientConfig.getGroup()).setParamTypes(method.getParameterTypes()).setParameters(args).build();
 
-        Object result = nettyRpcClient.sendResponse(request);
+        Object result = nettyRpcClient.sendRequest(request);
 
         return result;
     }
