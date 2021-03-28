@@ -48,7 +48,7 @@ public class NettyServer {
 
         //business thread pool
         //业务线程数配置为 CPU 核心数比较合适
-        UnorderedThreadPoolEventExecutor businessThreadPool = new UnorderedThreadPoolEventExecutor(Runtime.getRuntime().availableProcessors());
+        UnorderedThreadPoolEventExecutor businessThreadPool = new UnorderedThreadPoolEventExecutor(Runtime.getRuntime().availableProcessors(),new DefaultThreadFactory("business thread"));
 
         bootstrap.group(bossGroup,workerGroup)
                 .channel(NioServerSocketChannel.class)

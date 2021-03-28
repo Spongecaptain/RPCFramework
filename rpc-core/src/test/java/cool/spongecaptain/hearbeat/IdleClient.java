@@ -12,7 +12,7 @@ import cool.spongecaptain.transport.client.NettyClient;
 public class IdleClient {
     public static void main(String[] args) {
         NettyClient nettyClient = new NettyClient();
-        NettyRpcClient nettyRpcClient = new NettyRpcClient(new ZKServiceDiscovery(), new ChannelProvider(nettyClient),new WeightRandomLoadBalance());
+        NettyRpcClient nettyRpcClient = new NettyRpcClient(new ZKServiceDiscovery(), new ChannelProvider(nettyClient));
 
 
         RpcClientConfig rpcClientConfig = new RpcClientConfig("1","1");

@@ -9,7 +9,7 @@ public class TestLoadProperties {
     public static void main(String[] args) {
         Properties properties = new Properties();
         // 使用ClassLoader加载properties配置文件生成对应的输入流
-        InputStream in = TestLoadProperties.class.getClassLoader().getResourceAsStream("loadbalance.properties");
+        InputStream in = TestLoadProperties.class.getClassLoader().getResourceAsStream("consumer.properties");
         // 使用properties对象加载输入流
         try {
             properties.load(in);

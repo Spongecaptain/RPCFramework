@@ -22,8 +22,9 @@ public class ZKServiceDiscovery  implements ServiceDiscovery {
     public List<ServiceInfo> lookForService(String serviceName) {
         //缓存优先
         List<ServiceInfo> serviceList;
-        if(cache.contains(serviceName)){
-            return cache.get(serviceName);
+        serviceList = cache.get(serviceName);
+        if(serviceList!=null){
+            return serviceList;
         }else{
             //获取当前服务对应的所有服务提供者的地址：获取 serviceName/Provider 节点下的所有子节点
             List<String> addresses = CuratorUtil.getChildrenNodes(serviceName+"/Provider",this);

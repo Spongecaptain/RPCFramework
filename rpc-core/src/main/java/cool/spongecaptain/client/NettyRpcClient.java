@@ -1,6 +1,8 @@
 package cool.spongecaptain.client;
 
 import cool.spongecaptain.loadbalance.LoadBalance;
+import cool.spongecaptain.loadbalance.random.RandomLoadBalance;
+import cool.spongecaptain.loadbalance.random.WeightRandomLoadBalance;
 import cool.spongecaptain.protocol.RpcRequest;
 import cool.spongecaptain.protocol.RpcResponse;
 import cool.spongecaptain.registry.ServiceDiscovery;
@@ -11,9 +13,13 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelFutureListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sun.nio.ch.Net;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.util.List;
+import java.util.Properties;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
@@ -35,13 +41,37 @@ public class NettyRpcClient implements RpcClient {
     private static Logger logger = LoggerFactory.getLogger(NettyRpcClient.class);
 
     //负载均衡器
+    private LoadBalance loadBalance;
 
-    final private LoadBalance loadBalance;
-
-    public NettyRpcClient(ServiceDiscovery serviceDiscovery, ChannelProvider channelProvider,LoadBalance loadBalance) {
+    public NettyRpcClient(ServiceDiscovery serviceDiscovery, ChannelProvider channelProvider) {
         this.serviceDiscovery = serviceDiscovery;
         this.channelProvider = channelProvider;
-        this.loadBalance = loadBalance;
+        try {
+            this.loadBalance = initLoadBalance();
+        } catch (Exception e) {
+            System.err.println("please write correct loadBalance properties");
+            this.loadBalance = new RandomLoadBalance();
+        }
+    }
+
+    private LoadBalance initLoadBalance() throws ClassNotFoundException, IllegalAccessException, InstantiationException {
+        String f = "consumer.properties";
+        Properties properties = new Properties();
+        InputStream in = NettyRpcClient.class.getClassLoader().getResourceAsStream("consumer.properties");
+        String loadbalance = null;
+        try {
+            properties.load(in);
+            loadbalance = properties.getProperty("loadbalance","cool.spongecaptain.loadbalance.random.RandomLoadBalance");
+            logger.info("loadbalance is "+loadbalance);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        Class clazz = Class.forName(loadbalance);
+
+        Object object = clazz.newInstance();
+
+        return (LoadBalance) object;
     }
 
     /**
