@@ -16,6 +16,8 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.timeout.IdleStateHandler;
+import io.netty.util.concurrent.DefaultThreadFactory;
+import io.netty.util.concurrent.UnorderedThreadPoolEventExecutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,10 +43,12 @@ public class NettyServer {
 
 
         bootstrap = new ServerBootstrap();
-        bossGroup = new NioEventLoopGroup(1);
-        workerGroup = new NioEventLoopGroup();
+        bossGroup = new NioEventLoopGroup(1,new DefaultThreadFactory("boss"));
+        workerGroup = new NioEventLoopGroup(0,new DefaultThreadFactory("worker"));
 
-
+        //business thread pool
+        //业务线程数配置为 CPU 核心数比较合适
+        UnorderedThreadPoolEventExecutor businessThreadPool = new UnorderedThreadPoolEventExecutor(Runtime.getRuntime().availableProcessors());
 
         bootstrap.group(bossGroup,workerGroup)
                 .channel(NioServerSocketChannel.class)
@@ -54,13 +58,13 @@ public class NettyServer {
                     @Override
                     protected void initChannel(SocketChannel ch) throws Exception {
                         //Decoder 负责将 ByteBuf 的字节数据转换为 RpcRequest or Rpc 实例
-                        ch.pipeline().addLast(new ByteDecoder(new KryoSerialization()));
+                        ch.pipeline().addLast("ByteDecoder",new ByteDecoder(new KryoSerialization()));
                         //idle 检测
                         ch.pipeline().addLast(new IdleStateHandler(0,0,SERVER_IDLE_TIME, TimeUnit.SECONDS));
                         //响应 Idle 事件，关闭连接
                         ch.pipeline().addLast(ServerIdleHandler.getServerIdleHandler());
                         //RPCRequestHandler 负责处理 RpcRequest 对应的 RPC 方法，执行后产生对应的 RPCResponse 实例返回
-                        ch.pipeline().addLast(RpcRequestHandler.getRpcRequestHandler());
+                        ch.pipeline().addLast(businessThreadPool,RpcRequestHandler.getRpcRequestHandler());
                         //Encoder 负责将 RPCResponse 转换为 ByteBuf，然后再向前传播
                         ch.pipeline().addLast(new MessageEncoder(new KryoSerialization()));
                         //心跳处理 Handler
