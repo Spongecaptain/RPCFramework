@@ -21,7 +21,7 @@ public class RpcRequestHandler extends SimpleChannelInboundHandler<RpcRequest> {
     private static AtomicInteger count = new AtomicInteger(1);//rpc 计数器
 
     //单例模式
-    private static RpcRequestHandler rpcRequestHandler;
+    private static volatile RpcRequestHandler rpcRequestHandler;
 
     private RpcRequestHandler(){}
 

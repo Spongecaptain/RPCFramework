@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory;
 public class HeatBeatRequestHandler extends SimpleChannelInboundHandler<RpcHeartBeatRequest> {
     private static final Logger logger = LoggerFactory.getLogger(HeatBeatRequestHandler.class);
     //单例模式
-    private static HeatBeatRequestHandler heartBeatTimerHandler;
+    private static volatile HeatBeatRequestHandler heartBeatTimerHandler;
 
     private HeatBeatRequestHandler(){}
 

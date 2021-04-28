@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory;
 public class RpcResponseHandler extends SimpleChannelInboundHandler<RpcResponse<Object>> {
 
     //单例模式
-    public static RpcResponseHandler rpcResponseHandler;
+    public static volatile RpcResponseHandler rpcResponseHandler;
 
     public RpcResponseHandler(){};
 

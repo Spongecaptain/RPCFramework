@@ -19,7 +19,7 @@ public class ServerIdleHandler extends ChannelDuplexHandler {
 
     //单例模式
 
-    private static ServerIdleHandler serverIdleHandler;
+    private static volatile ServerIdleHandler serverIdleHandler;
 
     private ServerIdleHandler(){}
 

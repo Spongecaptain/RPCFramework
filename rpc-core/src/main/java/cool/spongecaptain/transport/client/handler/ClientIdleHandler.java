@@ -18,7 +18,7 @@ import org.slf4j.LoggerFactory;
 public class ClientIdleHandler extends ChannelDuplexHandler {
 
     //单例模式
-    private static ClientIdleHandler clientIdleHandler;
+    private static volatile ClientIdleHandler clientIdleHandler;
 
     private ClientIdleHandler() {
     }
