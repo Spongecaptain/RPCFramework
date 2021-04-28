@@ -22,6 +22,8 @@ import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
  * 这个类主要负责的任务有：
@@ -32,7 +34,8 @@ import java.util.concurrent.ExecutionException;
  * 4. 返回 RPC 调用过程中的响应结果
  */
 public class NettyRpcClient implements RpcClient {
-
+    public final static int TIME_OUT = 3000;//默认超时时间设置为 3000 ms
+    public final static int RESEND_TIMES = 3;//默认重试 3 次
     //服务发现组件
     private ServiceDiscovery serviceDiscovery;
     //ChannelProvider 实例实际上依赖于 NettyClient 完成工作
@@ -61,8 +64,8 @@ public class NettyRpcClient implements RpcClient {
         String loadbalance = null;
         try {
             properties.load(in);
-            loadbalance = properties.getProperty("loadbalance","cool.spongecaptain.loadbalance.random.RandomLoadBalance");
-            logger.info("loadbalance is "+loadbalance);
+            loadbalance = properties.getProperty("loadbalance", "cool.spongecaptain.loadbalance.random.RandomLoadBalance");
+            logger.info("loadbalance is " + loadbalance);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -76,6 +79,7 @@ public class NettyRpcClient implements RpcClient {
 
     /**
      * 这是一个同步阻塞方法，当客户端调用时，阻塞直到服务端将相关 RPC 请求的响应返回给客户端
+     *
      * @param request
      * @return
      */
@@ -85,7 +89,7 @@ public class NettyRpcClient implements RpcClient {
         String serviceName = request.getInterfaceName();
         //2. 进行服务的查询
         List<ServiceInfo> serviceList = serviceDiscovery.lookForService(serviceName);
-        String address = loadBalance.getServerAddress(request,serviceList);
+        String address = loadBalance.getServerAddress(request, serviceList);
 
         //将 localhost:8233 的地址分别得到 hostName 以及端口
 
@@ -94,34 +98,48 @@ public class NettyRpcClient implements RpcClient {
         String host = split[0];
         String port = split[1];
 
-        InetSocketAddress inetSocketAddress = new InetSocketAddress(host,Integer.parseInt(port));
+        InetSocketAddress inetSocketAddress = new InetSocketAddress(host, Integer.parseInt(port));
 
         //3. 利用 ChannelProvider 进行消息的传输（其底层依赖于 NettyClient）
+
+        Object result = doSend(inetSocketAddress, request, RESEND_TIMES);
+
+        return result;
+
+    }
+
+
+    private Object doSend(InetSocketAddress inetSocketAddress, RpcRequest request, int resendTimes) {
+        if (resendTimes < 1) {
+            return null;
+        }
         Channel channel = channelProvider.getChannel(inetSocketAddress);
         //4. 得到 RpcRequest 请求对应的处理结果：注意 RpcResponse 并不会通过 ChannelFuture 返回，而是通过另一个异步过程，因此需要 UnprocessedRequests 类的帮助
         CompletableFuture<RpcResponse<Object>> resultFuture = new CompletableFuture<>();
 
         Object result = null;
-        UnprocessedRequests.put(request.getRequestId(), resultFuture);
+        UnprocessedRequests.put(request, resultFuture);
 
-        channel.write(request).addListener((ChannelFutureListener) future -> {
+        channel.writeAndFlush(request).addListener((ChannelFutureListener) future -> {
             if (future.isSuccess()) {
                 //注意，这里仅仅是 Consumer 向 Provider 成功完成了请求的发送，但是并没有收到 response
                 logger.info("client send message: [{}]", request);
             } else {
-                future.channel().close();
                 resultFuture.completeExceptionally(future.cause());
                 logger.error("Send failed:", future.cause());
             }
         });
 
         try {
-            //sendRequest 阻塞等待服务端返回 rpc 请求的处理结果
-            result = resultFuture.get().getBody();
-        } catch (InterruptedException | ExecutionException e) {
-            e.printStackTrace();
+            //超时等待
+            int time = TIME_OUT << (RESEND_TIMES - resendTimes);
+            result = resultFuture.get(time,TimeUnit.MILLISECONDS).getBody();
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            logger.error("Resend a request");
+            //重试
+            doSend(inetSocketAddress, request, resendTimes - 1);
         }
-
         return result;
     }
 }

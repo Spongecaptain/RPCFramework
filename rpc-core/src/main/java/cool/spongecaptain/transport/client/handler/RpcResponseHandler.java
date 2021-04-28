@@ -32,6 +32,7 @@ public class RpcResponseHandler extends SimpleChannelInboundHandler<RpcResponse<
     private static final Logger logger = LoggerFactory.getLogger(RpcResponseHandler.class);
     @Override
     protected void channelRead0(ChannelHandlerContext chx, RpcResponse<Object> response) throws Exception {
+        //可能会因为消息重发而出现多个同一个 requestID  RPC 响应
         logger.info("complete one RPC Response, the result is {} from {}",response.getBody(),chx.channel().remoteAddress());
         //通知异步响应已经接收到
         UnprocessedRequests.complete(response);

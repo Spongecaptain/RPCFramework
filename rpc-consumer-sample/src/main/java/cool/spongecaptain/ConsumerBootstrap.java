@@ -20,31 +20,33 @@ import java.util.Properties;
 public class ConsumerBootstrap {
     public static void main(String[] args) {
         NettyClient nettyClient = new NettyClient();
-
         NettyRpcClient nettyRpcClient = new NettyRpcClient(new ZKServiceDiscovery(), new ChannelProvider(nettyClient));
-
-
-        RpcClientConfig rpcClientConfig = new RpcClientConfig("1","1");
-        RpcProxy rpcProxy = new RpcProxy(nettyRpcClient,rpcClientConfig);
-
-
-        //这里进行测试负载均衡算法
-
-        //分别进行 10 次测试
-        SayHelloInterface sayHello = (SayHelloInterface)rpcProxy.newProxyInstance(SayHelloInterface.class);
+        RpcClientConfig rpcClientConfig = new RpcClientConfig("1", "1");
+        RpcProxy rpcProxy = new RpcProxy(nettyRpcClient, rpcClientConfig);
+        SayHelloInterface sayHello = (SayHelloInterface) rpcProxy.newProxyInstance(SayHelloInterface.class);
 
         for (int i = 0; i < 10; i++) {
             //测试 SayHelloInterface#sayHello 方法
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
             String result = sayHello.sayHello("spongecaptain " + i);
-            System.out.println("From ConsumerBootstrap: sayHello result: "+result);
+            System.out.println("From ConsumerBootstrap: sayHello result: " + result);
         }
 
+        AddInterface add = (AddInterface) rpcProxy.newProxyInstance(AddInterface.class);
 
         for (int i = 0; i < 10; i++) {
             //测试 AddInterface#add 方法
-            AddInterface add = (AddInterface)rpcProxy.newProxyInstance(AddInterface.class);
-            int addResult = add.add(i-1, i);
-            System.out.println("From ConsumerBootstrap: add result: "+addResult);
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            int addResult = add.add(i - 1, i);
+            System.out.println("From ConsumerBootstrap: add result: " + addResult);
         }
 
     }

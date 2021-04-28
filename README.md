@@ -172,8 +172,3 @@ public interface LoadBalance {
 ## 6. 框架说明
 
 可以参考个人的博客：https://spongecaptain.cool/post/rpc/myrpcframework/
-
-## 7. TODO
-
-- [ ] 实现 RPC 调用中的超时与重试机制；
-- [ ] 利用配置文件，使各个组件可以根据配置动态可替换；
